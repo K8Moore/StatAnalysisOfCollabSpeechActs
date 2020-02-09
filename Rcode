@@ -1,0 +1,213 @@
+df = read.csv(file.choose(), header = TRUE)
+
+# Cleaning the Data
+d = df[,-4]
+d$GroupID = as.character(d$GroupID)
+d$GroupID[d$GroupID == "GD"] = 1
+d$GroupID[d$GroupID == "GJ"] = 2
+D = data.matrix(d, rownames.force = NA)
+
+##### VARIABLES #####################################################################################################
+
+## GROUP CONDITIONS ##
+# Cond = Experimental Conditions: 3 = GD, 2 = GJ (see below for details)
+
+# Map = Pre/Post Test: 
+# 1 = Pre-test, a problem that individuals solved independently, 
+# 2 = Post-test, a problem that individuals solve collaboratively as a dyad
+
+## CATEGORICAL VARIABLES ##
+# GD = 2.1 = Group Distributed: Individuals were primed to come to the table with different solutions to the problem
+# GJ = 2.2 = Group Joint: Individuals were primed to come to the table with the same solutions to the problem
+
+# A = 1.1 = Individual A: One of the participants in the dyad (randomly assigned)
+# B = 1.2 = Individual B: The other particiant in the dyad (also randomly assigned)
+
+## SPEECH ACTS ##
+# E = Explain: explain an idea aloud to a partner
+# P = Propose: propose an idea or course of action
+# Qc = Ask a Question for Consideration: prompting partner to consider or think about an idea
+# Qi = As a Question for Information: ask partner for information
+# Qr = As a Rhetorical Question: as a question to which an answer is not expected
+# Ra = Response Agree: respond to partner with an agreement
+# Rm = Reponse Modify: respond to partner to adjust or contribute to their statement or their point
+# Rd = Response Disagree: respond to partner to disagree with their point
+# S = Social Facilitation: utter a phrase that facilitates a positive social dynamic, e.g. make a joke
+# J = Coordinate Joint Attention: utter a phrase that draws partners attention to an object
+# N = Interuption: Interupt partern's utterance such that they do not finish what they were saying
+# C = Change Topic: Change the topic of conversation
+
+##########################################################################################################
+
+# Creating groups
+Groups = D[seq(1, nrow(D), 3),]
+
+# Further cleaning the data for Groups
+Groups = Groups[,3:15]
+
+##### Research Questions #############################################################################
+
+# 1. Are the speech acts used in the group conditions (GJ, GD) significantly different?
+# 2. Do the individuals in a dyad use significantly different speech acts from each other?
+
+######################################################################################################
+
+
+# Partioning the data into two groups for VARIABLES OF INTEREST: E, P, Qc, Qi, Qr
+Y1 <- as.matrix(Groups[1:14,2:6])
+Y2 <- as.matrix(Groups[15:33,2:6])
+
+
+# Calculating Hotelling T-test for All Variables & Variables of Interest
+install.packages("ICSNP")
+library(ICSNP)
+HotellingsT2(Y1, Y2)  # Sig., p = 0.02882
+
+
+# Calculating p-value by hand to check these results
+y1.bar <- apply(Y1, 2, mean)
+y2.bar <- apply(Y2, 2, mean)
+S1 <- cov(Y1)
+S2 <- cov(Y2)
+n1 = nrow(Y1)
+n2 = nrow(Y2)
+Sp <- (1/(n1 + n2 - 2))*((n1-1)*S1 + (n2 - 1)*S2)
+T.sq.test <- (n1 * n2 / (n1 + n2)) * t(y1.bar - y2.bar)%*%solve(Sp)%*%(y1.bar - y2.bar)
+p <- ncol(Y1)
+
+
+# Means & St.Dev. for All Variables of Interest
+colMeans(Y1)
+colMeans(Y2)
+apply(Y1, 2, sd)
+apply(Y2, 2, sd)
+
+
+# Clustered Boxplot
+library(ggplot2)
+df1 = as.data.frame(Groups[,3:4])
+p = ggplot(df1, aes(group=df1[,1], y=df1[,2], color=GroupID)) + 
+  geom_boxplot(outlier.colour="red", 
+               outlier.shape=8,
+               outlier.size=4)
+p + theme_classic() + scale_x_discrete(limits=c("1", "2")) + scale_y_continuous(limits = range(df1))
+
+df2 = as.data.frame(cbind(Groups[,3], Groups[,5]))
+p = ggplot(df2, aes(group=df2[,1], y=df2[,2], color=df2[,1])) + 
+  geom_boxplot(outlier.colour="red", 
+               outlier.shape=8,
+               outlier.size=4)
+p + theme_classic() + scale_x_discrete(limits=c("1", "2")) + scale_y_continuous(limits = range(df1))
+
+df3 = as.data.frame(cbind(Groups[,3], Groups[,6]))
+p = ggplot(df3, aes(group=df3[,1], y=df3[,2], color=df3[,1])) + 
+  geom_boxplot(outlier.colour="red", 
+               outlier.shape=8,
+               outlier.size=4)
+p + theme_classic() + scale_x_discrete(limits=c("1", "2")) + scale_y_continuous(limits = range(df1))
+
+df4 = as.data.frame(cbind(Groups[,3], Groups[,7]))
+p = ggplot(df4, aes(group=df4[,1], y=df4[,2], color=df4[,1])) + 
+  geom_boxplot(outlier.colour="red", 
+               outlier.shape=8,
+               outlier.size=4)
+p + theme_classic() + scale_x_discrete(limits=c("1", "2")) + scale_y_continuous(limits = range(df1))
+
+df5 = as.data.frame(cbind(Groups[,3], Groups[,8]))
+p = ggplot(df5, aes(group=df5[,1], y=df5[,2], color=df5[,1])) + 
+  geom_boxplot(outlier.colour="red", 
+               outlier.shape=8,
+               outlier.size=4)
+p + theme_classic() + scale_x_discrete(limits=c("1", "2")) + scale_y_continuous(limits = range(df1))
+
+
+
+# Test for Normality: Schapiro-Wilks Test
+# GS Condition
+shapiro.test(Y1[,1])
+hist(Y1[,1], freq = FALSE)
+curve(expr = dnorm(x, mean = mean(Y1[,1]), sd = sd(Y1[,1])), add = TRUE, lwd = 2, col = "blue")
+qqnorm(Y1[,1])
+qqline(Y1[,1])
+
+shapiro.test(Y1[,2])
+hist(Y1[,2], freq = FALSE)
+curve(expr = dnorm(x, mean = mean(Y1[,2]), sd = sd(Y1[,2])), add = TRUE, lwd = 2, col = "blue")
+qqnorm(Y1[,2])
+qqline(Y1[,2])
+
+shapiro.test(Y1[,3])
+hist(Y1[,3], freq = FALSE)
+curve(expr = dnorm(x, mean = mean(Y1[,3]), sd = sd(Y1[,3])), add = TRUE, lwd = 2, col = "blue")
+qqnorm(Y1[,3])
+qqline(Y1[,3])
+
+shapiro.test(Y1[,4])
+hist(Y1[,4], freq = FALSE)
+curve(expr = dnorm(x, mean = mean(Y1[,4]), sd = sd(Y1[,4])), add = TRUE, lwd = 2, col = "blue")
+qqnorm(Y1[,4])
+qqline(Y1[,4])
+
+shapiro.test(Y1[,5])
+hist(Y1[,5], freq = FALSE)
+curve(expr = dnorm(x, mean = mean(Y1[,5]), sd = sd(Y1[,5])), add = TRUE, lwd = 2, col = "blue")
+qqnorm(Y1[,5])
+qqline(Y1[,5])
+
+# GD Condition
+shapiro.test(Y2[,1])
+hist(Y2[,1], freq = FALSE)
+curve(expr = dnorm(x, mean = mean(Y2[,1]), sd = sd(Y2[,1])), add = TRUE, lwd = 2, col = "red")
+qqnorm(Y2[,1])
+qqline(Y2[,1])
+
+shapiro.test(Y2[,2])
+hist(Y2[,2], freq = FALSE)
+curve(expr = dnorm(x, mean = mean(Y2[,2]), sd = sd(Y2[,2])), add = TRUE, lwd = 2, col = "red")
+qnorm(Y2[,2])
+qqline(Y2[,2])
+
+shapiro.test(Y2[,3])
+hist(Y2[,3], freq = FALSE)
+curve(expr = dnorm(x, mean = mean(Y2[,3]), sd = sd(Y2[,3])), add = TRUE, lwd = 2, col = "red")
+qqnorm(Y2[,3])
+qqline(Y2[,3])
+
+shapiro.test(Y1[,4])
+hist(Y2[,4], freq = FALSE)
+curve(expr = dnorm(x, mean = mean(Y2[,4]), sd = sd(Y2[,4])), add = TRUE, lwd = 2, col = "red")
+qqnorm(Y2[,4])
+qqline(Y2[,4])
+
+shapiro.test(Y2[,5])
+hist(Y2[,5], freq = FALSE)
+curve(expr = dnorm(x, mean = mean(Y2[,5]), sd = sd(Y2[,5])), add = TRUE, lwd = 2, col = "red")
+qqnorm(Y2[,5])
+qqline(Y2[,5])
+
+
+#BoxM Test
+results<-BoxM(Groups[,2:6], Groups[,1])
+results
+head(Groups)
+
+
+#TwoSampleHT2
+TS=TwoSamplesHT2(Groups[,2:6], Groups[,1], alpha = 0.05, Homogenity = FALSE)
+summary(TS)
+
+
+#Individual t-Tests
+t.test((Y1[,1]), (Y2[,1]))
+t.test((Y1[,2]), (Y2[,2]))
+t.test((Y1[,3]), (Y2[,3]))
+t.test((Y1[,4]), (Y2[,4]))
+t.test((Y1[,5]), (Y2[,5]))
+
+
+# Descriminant Analysis
+a = b%*%(y1.bar - y2.bar)
+
+# T * 2 alternative:
+alt = t(y1.bar - y2.bar)%*%solve((S1/n1) + (S2/n2))%*%(y1.bar - y2.bar)
+TwoSamplesHT2(Groups[,2:6], Groups[,1], alpha = 0.05, Homogenity = FALSE)
