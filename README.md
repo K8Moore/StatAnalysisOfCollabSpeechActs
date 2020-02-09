@@ -1,5 +1,5 @@
-# MultivariateAnalysis
-A repository for code used to perform statistical analysis (CCA, PCA, Latent Factor Analysis, etc.) of speech acts from collaborative conversations. 
+# Hotelling T-test
+Code used to perform statistical analysis of speech acts from collaborative conversations. 
 
 Data Summary:
 The data in this study are continuous count variables. Each speech act is a vector of the number of times raters counted that speech act in a conversation. The speech acts have been summed across dyads and partitions by condition. Vector means and standard deviations are displayed in Table 2.
